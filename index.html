@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuizLink – Free DIY Quiz Maker (No Signup): Make BuzzFeed-Style Personality Quizzes</title>
+<meta name="description" content="QuizLink is a free DIY quiz maker with no signup. Create BuzzFeed-style personality quizzes in minutes, share each quiz as a single link, and export result cards as PNGs. Unlimited free usage.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: { qlink: '#FF3E6C', qteal: '#2EC4B6', qink: '#191423', qpaper: '#FFFDF8' },
+      fontFamily: {
+        display: ['"Bebas Neue"', 'Arial Narrow', 'sans-serif'],
+        body: ['Inter', 'system-ui', 'sans-serif']
+      },
+      boxShadow: {
+        'mag': '6px 6px 0 #191423',
+        'mag-sm': '4px 4px 0 #191423'
+      }
+    }
+  }
+};
+</script>
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; background: #FFFFFF; color: #191423; }
+  .font-display { font-family: 'Bebas Neue', 'Arial Narrow', sans-serif; letter-spacing: 0.02em; }
+  .halftone {
+    background-image: radial-gradient(#ffd9e3 1.2px, transparent 1.2px);
+    background-size: 18px 18px;
+  }
+  .card-pop { border: 3px solid #191423; box-shadow: 6px 6px 0 #191423; }
+  .card-pop-sm { border: 3px solid #191423; box-shadow: 4px 4px 0 #191423; }
+  .btn-pop { border: 3px solid #191423; box-shadow: 4px 4px 0 #191423; transition: transform .12s ease, box-shadow .12s ease; }
+  .btn-pop:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #191423; }
+  .btn-pop:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #191423; }
+  .opt-card { border: 3px solid #191423; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; cursor: pointer; }
+  .opt-card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #191423; }
+  .opt-card.picked { background: #FF3E6C; color: #fff; box-shadow: 6px 6px 0 #191423; }
+  .opt-card.picked .opt-letter { background: #fff; color: #FF3E6C; }
+  .slide-in-right { animation: slideR .28s ease; }
+  .slide-in-left { animation: slideL .28s ease; }
+  @keyframes slideR { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes slideL { from { transform: translateX(-60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .pop-in { animation: popIn .35s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .toast { animation: popIn .25s ease; }
+  input[type="text"], textarea, select { outline: none; }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: #FF3E6C !important; }
+  .no-print {}
+  @media print { .no-print { display: none !important; } }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is QuizLink really free, and do I need to sign up?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. QuizLink is completely free with unlimited usage and no signup, no account, and no paywall. You can create as many quizzes as you like, share them, and play quizzes shared with you without ever entering an email address." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does sharing a quiz work without an account?",
+      "acceptedAnswer": { "@type": "Answer", "text": "When you finish building a quiz, QuizLink compresses the entire quiz — questions, answers, and results — into the link itself (in the part after the # symbol). Anyone who opens that link sees your quiz instantly. Nothing is stored on a server, which is why no account is needed." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is personality-style scoring?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Instead of right and wrong answers, each answer choice votes for a result bucket. If most of your picks point to the 'Adventurer' outcome, that is your result — just like classic BuzzFeed-style personality quizzes." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I remix or edit a quiz someone shared with me?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Open any QuizLink quiz link and tap 'Remix this quiz' to load the full quiz into the editor. Change questions, answers, or results, then share your own new link. The original quiz is never changed." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I share my quiz result on social media?",
+      "acceptedAnswer": { "@type": "Answer", "text": "After finishing a quiz, tap 'Download result card' to save a ready-made PNG image of your result, then post it on Instagram, WhatsApp, X, or anywhere else. You can also copy the quiz link so friends can take it themselves." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a limit to how many questions or quizzes I can make?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Each quiz supports 2 to 12 questions, 2 to 6 answers per question, and 2 to 8 possible results. There is no limit on the number of quizzes you can create — usage is unlimited and free." }
+    }
+  ]
+}
+</script>
+</head>
+<body class="bg-white text-qink antialiased" id="top">
+
+<!-- Sticky header -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b-[3px] border-qink">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2">
+      <span class="w-9 h-9 rounded-xl bg-qlink border-[3px] border-qink flex items-center justify-center text-white font-display text-xl pt-0.5">Q</span>
+      <span class="font-display text-3xl tracking-wide">Quiz<span class="text-qlink">Link</span></span>
+    </a>
+    <nav class="flex items-center gap-5 text-sm font-semibold">
+      <a href="#top" class="hover:text-qlink transition">Home</a>
+      <a href="https://fixoraa.tech" class="bg-qink text-white px-4 py-2 rounded-full hover:bg-qlink transition">More Tools</a>
+    </nav>
+  </div>
+</header>
+
+<!-- TOP AD (verbatim) -->
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pt-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <div class="origin-top scale-[0.44] sm:scale-100 shrink-0">
+        <script>
+          atOptions = { 'key' : '4e68ac77881c17fe128a46565d9a4e8c', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} };
+        </script>
+        <script src="https://www.highrevenueformat.com/4e68ac77881c17fe128a46565d9a4e8c/invoke.js"></script>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6">
+
+  <!-- Tool hero -->
+  <section class="pt-8 pb-6 text-center relative">
+    <div class="halftone absolute inset-0 -z-10 opacity-60 rounded-3xl"></div>
+    <div class="inline-flex flex-wrap items-center justify-center gap-2 mb-4">
+      <span class="bg-qteal text-qink text-xs font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full border-[3px] border-qink">Unlimited Free Usage</span>
+      <span class="bg-white text-qink text-xs font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full border-[3px] border-qink">No signup</span>
+      <span class="bg-qlink text-white text-xs font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full border-[3px] border-qink">No paywall</span>
+    </div>
+    <h1 class="font-display text-5xl sm:text-7xl leading-none mb-3">MAKE YOUR OWN QUIZ <span class="text-qlink">FREE</span></h1>
+    <p class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto font-medium">Build a BuzzFeed-style personality quiz in minutes. Every quiz lives inside its share link — no account, no database, no waiting. Friends open your link and play instantly.</p>
+  </section>
+
+  <!-- ============ EDITOR VIEW ============ -->
+  <section id="view-editor" class="pb-10">
+    <div class="grid lg:grid-cols-5 gap-6 items-start">
+
+      <!-- Left: build steps -->
+      <div class="lg:col-span-3 space-y-6">
+
+        <!-- Step 1: basics -->
+        <div class="card-pop bg-qpaper rounded-2xl p-5 sm:p-7">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="w-10 h-10 rounded-full bg-qlink text-white font-display text-2xl flex items-center justify-center border-[3px] border-qink pt-0.5">1</span>
+            <h2 class="font-display text-3xl">NAME YOUR QUIZ</h2>
+          </div>
+          <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-1.5">Quiz title</label>
+          <input id="ed-title" type="text" maxlength="120" placeholder="e.g. Which Pizza Are You?"
+            class="w-full border-[3px] border-qink rounded-xl px-4 py-3 text-lg font-semibold bg-white mb-4">
+          <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-1.5">Short description <span class="normal-case font-medium">(optional)</span></label>
+          <textarea id="ed-desc" rows="2" maxlength="300" placeholder="One line that sells the quiz…"
+            class="w-full border-[3px] border-qink rounded-xl px-4 py-3 font-medium bg-white resize-y"></textarea>
+        </div>
+
+        <!-- Step 2: outcomes -->
+        <div class="card-pop bg-qpaper rounded-2xl p-5 sm:p-7">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-full bg-qteal text-qink font-display text-2xl flex items-center justify-center border-[3px] border-qink pt-0.5">2</span>
+              <h2 class="font-display text-3xl">RESULT OUTCOMES</h2>
+            </div>
+            <button id="btn-add-outcome" class="btn-pop bg-qteal text-qink text-sm font-extrabold px-4 py-2 rounded-xl">+ Add</button>
+          </div>
+          <p class="text-sm text-slate-500 font-medium mb-4">Personality-style results. Each answer will vote for one of these — the outcome with the most votes wins.</p>
+          <div id="ed-outcomes" class="space-y-3"></div>
+        </div>
+
+        <!-- Step 3: questions -->
+        <div class="card-pop bg-qpaper rounded-2xl p-5 sm:p-7">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-full bg-qink text-white font-display text-2xl flex items-center justify-center border-[3px] border-qink pt-0.5">3</span>
+              <h2 class="font-display text-3xl">QUESTIONS</h2>
+            </div>
+            <button id="btn-add-question" class="btn-pop bg-qlink text-white text-sm font-extrabold px-4 py-2 rounded-xl">+ Add question</button>
+          </div>
+          <p class="text-sm text-slate-500 font-medium mb-4">2–12 questions, 2–6 answers each. Point every answer at the result it votes for.</p>
+          <div id="ed-questions" class="space-y-5"></div>
+        </div>
+      </div>
+
+      <!-- Right: publish panel -->
+      <div class="lg:col-span-2 lg:sticky lg:top-24 space-y-6">
+        <div class="card-pop bg-qink text-white rounded-2xl p-5 sm:p-6">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="w-10 h-10 rounded-full bg-qlink text-white font-display text-2xl flex items-center justify-center border-[3px] border-white pt-0.5">4</span>
+            <h2 class="font-display text-3xl">SHARE IT</h2>
+          </div>
+          <p class="text-sm text-white/70 font-medium mb-4">Your whole quiz is packed into one link. No upload, no account — the link <em>is</em> the quiz.</p>
+          <div id="ed-errors" class="hidden mb-4 bg-red-500/15 border-2 border-red-400 rounded-xl p-3 text-sm font-medium text-red-200 space-y-1"></div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <button id="btn-preview" class="btn-pop bg-qteal text-qink font-extrabold px-4 py-3 rounded-xl text-sm">▶ Preview &amp; Play</button>
+            <button id="btn-share" class="btn-pop bg-qlink text-white font-extrabold px-4 py-3 rounded-xl text-sm">🔗 Copy Share Link</button>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button id="btn-sample" class="text-xs font-bold text-white/60 hover:text-white underline underline-offset-2">Load sample quiz</button>
+            <button id="btn-fresh" class="text-xs font-bold text-white/60 hover:text-white underline underline-offset-2">Start fresh</button>
+          </div>
+          <div id="share-box" class="hidden mt-4">
+            <label class="block text-xs font-extrabold uppercase tracking-widest text-white/60 mb-1.5">Your quiz link</label>
+            <div class="flex gap-2">
+              <input id="share-url" type="text" readonly class="flex-1 min-w-0 bg-white/10 border-2 border-white/30 rounded-xl px-3 py-2.5 text-xs font-mono text-white">
+              <button id="btn-copy-url" class="btn-pop bg-white text-qink text-xs font-extrabold px-4 rounded-xl shrink-0">Copy</button>
+            </div>
+            <p class="text-[11px] text-white/50 mt-2 font-medium">Anyone opening this link plays your quiz instantly — and can remix it.</p>
+          </div>
+        </div>
+
+        <div class="card-pop-sm bg-white rounded-2xl p-5">
+          <h3 class="font-display text-2xl mb-2">HOW IT WORKS</h3>
+          <ol class="text-sm font-medium text-slate-600 space-y-2 list-none">
+            <li><span class="font-extrabold text-qlink">①</span> Write questions &amp; personality results.</li>
+            <li><span class="font-extrabold text-qlink">②</span> Point each answer at a result it votes for.</li>
+            <li><span class="font-extrabold text-qlink">③</span> Copy your link — the quiz travels <em>inside</em> it.</li>
+            <li><span class="font-extrabold text-qlink">④</span> Friends play, get a result card, share it onward.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PLAYER VIEW ============ -->
+  <section id="view-player" class="pb-10 hidden">
+    <div class="max-w-2xl mx-auto">
+
+      <!-- Cover -->
+      <div id="player-cover" class="hidden">
+        <div class="card-pop bg-qpaper rounded-3xl overflow-hidden pop-in">
+          <div class="bg-qlink px-6 sm:px-10 pt-8 pb-6 border-b-[3px] border-qink relative overflow-hidden">
+            <div class="absolute -right-6 -top-6 w-40 h-40 rounded-full bg-white/15"></div>
+            <div class="absolute right-16 top-10 w-16 h-16 rounded-full bg-qteal/70 border-[3px] border-qink"></div>
+            <p class="text-white/80 text-xs font-extrabold uppercase tracking-[0.25em] mb-2">A QuizLink personality quiz</p>
+            <h2 id="cover-title" class="font-display text-5xl sm:text-6xl text-white leading-none mb-2"></h2>
+            <p id="cover-desc" class="text-white/85 font-medium"></p>
+          </div>
+          <div class="p-6 sm:p-10 text-center">
+            <div class="flex items-center justify-center gap-2 mb-5">
+              <span id="cover-count" class="bg-qteal border-[3px] border-qink rounded-full px-4 py-1 text-xs font-extrabold uppercase tracking-widest"></span>
+              <span class="bg-white border-[3px] border-qink rounded-full px-4 py-1 text-xs font-extrabold uppercase tracking-widest">No signup needed</span>
+            </div>
+            <button id="btn-start" class="btn-pop bg-qlink text-white font-display text-3xl px-10 py-3 rounded-2xl tracking-wide">START QUIZ</button>
+            <div class="mt-5">
+              <button id="btn-remix-cover" class="text-sm font-bold text-slate-500 hover:text-qlink underline underline-offset-2">✏️ Remix this quiz — make your own version</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invalid link -->
+      <div id="player-invalid" class="hidden">
+        <div class="card-pop bg-qpaper rounded-3xl p-8 sm:p-10 text-center pop-in">
+          <div class="text-6xl mb-4">🔗💥</div>
+          <h2 class="font-display text-4xl mb-2">THIS QUIZ LINK LOOKS BROKEN</h2>
+          <p class="text-slate-600 font-medium mb-6">The link is incomplete or got mangled in transit (messaging apps sometimes trim long links). Ask the sender to re-copy it from QuizLink.</p>
+          <button id="btn-invalid-make" class="btn-pop bg-qlink text-white font-extrabold px-8 py-3 rounded-xl">Make your own quiz instead</button>
+        </div>
+      </div>
+
+      <!-- Question pages -->
+      <div id="player-quiz" class="hidden">
+        <div class="flex items-center justify-between mb-3">
+          <button id="btn-back-q" class="text-sm font-extrabold text-slate-500 hover:text-qlink">← Back</button>
+          <span id="q-progress-label" class="text-xs font-extrabold uppercase tracking-widest text-slate-500"></span>
+        </div>
+        <div class="h-4 bg-white border-[3px] border-qink rounded-full overflow-hidden mb-6">
+          <div id="q-progress-bar" class="h-full bg-gradient-to-r from-qlink to-qteal rounded-full transition-all duration-300" style="width:0%"></div>
+        </div>
+        <div id="q-card" class="card-pop bg-qpaper rounded-3xl p-6 sm:p-8"></div>
+        <p class="text-center text-xs text-slate-400 font-medium mt-4">Tip: swipe left / right (or use the buttons) to move between questions.</p>
+      </div>
+
+      <!-- Result -->
+      <div id="player-result" class="hidden">
+        <div class="card-pop bg-qpaper rounded-3xl overflow-hidden pop-in">
+          <div class="bg-qink px-6 sm:px-10 py-6 border-b-[3px] border-qink text-center">
+            <p class="text-qteal text-xs font-extrabold uppercase tracking-[0.25em] mb-1">Your result</p>
+            <p id="res-quiz-title" class="text-white/70 text-sm font-medium"></p>
+          </div>
+          <div class="p-6 sm:p-10 text-center">
+            <div id="res-emoji" class="text-7xl sm:text-8xl mb-3"></div>
+            <h2 class="font-display text-5xl sm:text-6xl leading-none mb-1">YOU ARE</h2>
+            <h3 id="res-name" class="font-display text-5xl sm:text-6xl text-qlink leading-none mb-3"></h3>
+            <p id="res-desc" class="text-slate-600 font-medium max-w-md mx-auto mb-6"></p>
+            <div id="res-tie-note" class="hidden mb-6 inline-block bg-qteal/20 border-2 border-qteal rounded-xl px-4 py-2 text-sm font-bold text-teal-800">🤝 It was a close call — a tie! This was the top pick.</div>
+            <div class="text-left max-w-md mx-auto mb-8">
+              <p class="text-xs font-extrabold uppercase tracking-widest text-slate-500 mb-2">Your breakdown</p>
+              <div id="res-bars" class="space-y-2"></div>
+            </div>
+            <p id="res-share-text" class="text-sm text-slate-500 font-medium italic max-w-md mx-auto mb-6"></p>
+            <div class="flex flex-wrap justify-center gap-3">
+              <button id="btn-png" class="btn-pop bg-qteal text-qink font-extrabold px-6 py-3 rounded-xl text-sm">⬇ Download result card (PNG)</button>
+              <button id="btn-copy-result-link" class="btn-pop bg-qlink text-white font-extrabold px-6 py-3 rounded-xl text-sm">🔗 Copy quiz link</button>
+            </div>
+            <div class="flex flex-wrap justify-center gap-5 mt-5">
+              <button id="btn-remix-result" class="text-sm font-bold text-slate-500 hover:text-qlink underline underline-offset-2">✏️ Remix this quiz</button>
+              <button id="btn-retake" class="text-sm font-bold text-slate-500 hover:text-qlink underline underline-offset-2">↻ Retake quiz</button>
+              <button id="btn-make-own" class="text-sm font-bold text-slate-500 hover:text-qlink underline underline-offset-2">＋ Make your own quiz</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- BOTTOM AD (verbatim) -->
+<div class="no-print mx-auto max-w-6xl px-4 sm:px-6 pb-4" role="complementary" aria-label="Advertisement">
+  <div class="mx-auto text-center" style="max-width:728px">
+    <span class="block text-[10px] tracking-[0.18em] uppercase text-slate-400 mb-1.5">Advertisement</span>
+    <div class="flex justify-center overflow-hidden">
+      <script async src="https://js.wpadmngr.com/static/adManager.js" data-admpid="464498"></script>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SEO ARTICLE ============ -->
+<section class="max-w-4xl mx-auto px-4 sm:px-6 pb-10">
+  <article class="prose-article text-slate-700 font-medium leading-relaxed space-y-5 text-[15px] sm:text-base">
+    <h2 class="font-display text-4xl sm:text-5xl text-qink pt-6">Make Your Own Quiz Free: The Complete Guide to DIY Personality Quizzes</h2>
+
+    <p>Everyone loves a good personality quiz. "Which pizza are you?" "What kind of traveler are you?" "Which fictional villain matches your vibe?" These playful little questionnaires dominated the internet for years, and they never really went away — they just moved into group chats, classrooms, Instagram stories, and team Slack channels. The problem was never demand. The problem was that making your own quiz used to mean signing up for yet another account, learning a clunky dashboard, hitting a paywall the moment your quiz got popular, or embedding a widget plastered with someone else's branding. <strong>QuizLink</strong> was built to remove every one of those obstacles: it is a free DIY quiz maker with no signup, no paywall, and no watermark, designed for the classic BuzzFeed-style personality quiz format that the whole world already knows how to play.</p>
+
+    <p>The idea is simple. You write a handful of questions, you write a handful of possible results, and you decide which answers point to which results. QuizLink then packs your entire quiz — every question, every answer, every result — into a single shareable link. Send that link to friends, students, followers, or colleagues, and they play your quiz instantly in their browser. Nobody needs an account. Nothing is uploaded to a server. The quiz literally travels inside the link itself, using a compact encoding tucked into the part of the URL after the hash symbol. Open the link, and the page decodes it and plays the quiz. It feels like magic, but it is just clever, honest engineering.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">What exactly is a BuzzFeed-style personality quiz?</h3>
+
+    <p>If you spent any time on the internet in the 2010s, you know the format by heart: a bold, colorful cover card, one question per page with big tappable answers, a progress bar, and a dramatic result reveal at the end. Crucially, there are no right or wrong answers. Instead of testing knowledge, personality quizzes sort you into a bucket. Pick mostly adventurous answers and you get "The Adventurer." Lean cozy and you get "The Homebody." This is called personality-style scoring, and it is the heart of QuizLink. Each answer you write casts one vote for a result outcome. When the player finishes, the outcome with the most votes wins. Ties are broken deterministically and flagged honestly, so nobody ever sees a glitchy or empty result.</p>
+
+    <p>Why does this format work so well? Psychologists point to a few reasons. First, the questions are low-stakes and fun, so completion rates are enormous compared to forms or surveys. Second, the result feels personal — it tells you something about yourself, which triggers the urge to share. Third, results are inherently social: "I got The Adventurer, what did you get?" is a conversation starter. That shareability is why personality quizzes became one of the most viral content formats in internet history, and why they remain a powerhouse for engagement, whether you are a teacher warming up a class, a marketer growing an email list, or just someone entertaining a group chat on a Friday night.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">Why "no signup" matters more than you think</h3>
+
+    <p>Most quiz tools make you create an account before you can do anything. That single step kills momentum: you have to invent a password, confirm an email, and hand over personal data just to ask your friends which pizza they are. Then the paywall arrives — result customization costs extra, removing branding costs extra, seeing more than a handful of responses costs extra. QuizLink takes the opposite approach. There is no account system at all, so there is nothing to sign up for and nothing to pay for. Usage is unlimited: make one quiz or one hundred. Your quizzes are never stored on our servers because they do not need to be — each one lives inside its own link. That is also a privacy win: since nothing is uploaded, there is no database of your quizzes to leak, sell, or lose.</p>
+
+    <p>This architecture has a delightful side effect: quizzes are portable forever. A QuizLink link you share today will still work years from now, because the quiz data is in the link, not on a server that might shut down. You can paste links into documents, print them as QR codes, or archive them. As long as someone can open the page, the quiz plays.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">How to make your own quiz free, step by step</h3>
+
+    <p>Creating a quiz with QuizLink takes about five minutes. <strong>Step one:</strong> give your quiz a title and a one-line description. Titles work best when they promise a fun identity reveal — "Which City Should You Live In?" beats "City Preference Survey" every time. <strong>Step two:</strong> write your result outcomes. These are the personalities, characters, or categories players can land in. Two to eight outcomes is the sweet spot; four is the classic number. Give each one a name, a short blurb describing the vibe, and an emoji for visual punch. <strong>Step three:</strong> write your questions. Two to twelve questions works well, with five to seven being the ideal length for a quiz people actually finish. Each question gets two to six answers, and — this is the important part — you point every answer at the outcome it votes for. If an answer screams "Adventurer," link it to the Adventurer outcome. <strong>Step four:</strong> hit "Copy Share Link." QuizLink validates your quiz first (it will gently tell you if a question is missing answers or an outcome is never used), then encodes everything into your link. Share it anywhere: WhatsApp, Instagram bio, email, classroom projector, wedding invitation — anywhere a link can go.</p>
+
+    <p>Want to test-drive first? The editor loads with a sample quiz ("Which Pizza Are You?") so you can press "Preview &amp; Play" and experience the whole flow — cover card, swipeable questions, animated result reveal — before writing a single word of your own.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">Tips for writing personality quizzes people actually finish</h3>
+
+    <p>Great quizzes are a craft. Here is what the best quiz makers do. <strong>Keep it short.</strong> Every extra question costs you completions; five punchy questions beat ten meandering ones. <strong>Make answers fun to read.</strong> The answers are the entertainment — write them with voice and specificity ("Cancel plans and order dumplings" beats "Stay home"). <strong>Balance your outcomes.</strong> Every result should be reachable and desirable in its own way; nobody wants to share a result that feels like an insult. <strong>Cover every outcome.</strong> QuizLink's validator warns you if an outcome is never assigned to any answer, because an unreachable result is a broken promise. <strong>Write results in the second person.</strong> "You are the friend everyone texts at 2am" hits harder than "This outcome represents loyalty." <strong>End with a shareable moment.</strong> The result screen is your viral loop — QuizLink's downloadable PNG result card exists precisely so players can post their result and pull in the next wave of players.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">Who is a free quiz maker for?</h3>
+
+    <p>Almost everyone. <strong>Teachers</strong> use personality quizzes as icebreakers and low-pressure formative checks ("Which scientist matches your lab style?"). <strong>Marketers and creators</strong> use them as engagement magnets — a "Which product fits you?" quiz converts far better than a static landing page, and the result card doubles as user-generated content. <strong>Friends and families</strong> use them for parties, bachelorettes, reunions, and group chats; a custom quiz about the birthday person is a better gift than another gift card. <strong>Teams and HR</strong> use them for onboarding fun and team-building ("Which meeting personality are you?"). <strong>Fandoms</strong> use them to sort each other into houses, squads, and eras. Because QuizLink requires no signup, it works in all these settings without IT approval, parental permission headaches, or awkward "create an account to continue" walls in front of your audience.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">Remixing: every quiz is a template</h3>
+
+    <p>One of QuizLink's most loved features is one-tap remixing. Anyone who opens your quiz link can tap "Remix this quiz" and instantly load your entire quiz into the editor — questions, answers, outcomes, all of it. They tweak it, make it their own, and share a brand-new link. Your original is never touched. This turns every quiz into a living template and every share into potential collaboration. Saw a great quiz format but want it about your friend group instead of pizza? Remix it in ten seconds. It is open-source culture applied to party games.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">Result cards: built for the share</h3>
+
+    <p>A quiz is only as viral as its result screen. When a player finishes your quiz, QuizLink shows a bold magazine-style result card: their outcome front and center, a breakdown of how their answers split across all outcomes, and buttons to copy the quiz link or download the result as a PNG image. The PNG is sized for social feeds and stories, so players can post "I got The Adventurer" on Instagram or drop it straight into the group chat. Every shared result card carries your quiz's title and an invitation to play, which is how one link becomes ten players becomes a hundred.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">Your privacy, by design</h3>
+
+    <p>QuizLink collects nothing because there is nothing to collect. No accounts means no passwords to breach. No server storage means no quiz database to mine. Your drafts auto-save only in your own browser's local storage, on your own device, and you can clear them any time. When you share a quiz, you are sharing a link that contains the quiz — recipients' answers never leave their device either; scoring happens entirely in their browser. In an era of data-hungry apps, a tool that structurally cannot spy on you is a feature worth celebrating.</p>
+
+    <h3 class="font-display text-3xl text-qink pt-4">QuizLink vs. typical quiz makers</h3>
+
+    <p>Compare the usual flow: sign up, confirm email, learn the dashboard, build your quiz, discover that custom results need the Pro plan, publish with someone else's logo on it, and hope your audience bothers to create accounts too. QuizLink's flow: open the page, write your quiz, copy the link, done. No signup on either side — creators and players alike. No paywall, no watermark, no response limits, no branding tax. It is the difference between renting a quiz platform and simply owning your quiz as a link you can take anywhere.</p>
+
+    <p>So what will you make? A quiz that settles the great "which friend are you" debate? A study-break game for your class? A lead magnet for your newsletter? Whatever it is, it takes five minutes, costs nothing, and requires no account. Scroll up, write your questions, and share your link — your audience is already waiting to find out which one they are.</p>
+  </article>
+
+  <!-- FAQs -->
+  <div class="mt-12">
+    <h2 class="font-display text-4xl sm:text-5xl text-qink mb-6 text-center">FREQUENTLY ASKED QUESTIONS</h2>
+    <div class="space-y-4">
+      <details class="card-pop-sm bg-qpaper rounded-2xl p-5">
+        <summary class="font-extrabold cursor-pointer text-lg">Is QuizLink really free, and do I need to sign up?</summary>
+        <p class="mt-2 text-slate-600 font-medium">Yes. QuizLink is completely free with unlimited usage and no signup, no account, and no paywall. You can create as many quizzes as you like, share them, and play quizzes shared with you without ever entering an email address.</p>
+      </details>
+      <details class="card-pop-sm bg-qpaper rounded-2xl p-5">
+        <summary class="font-extrabold cursor-pointer text-lg">How does sharing a quiz work without an account?</summary>
+        <p class="mt-2 text-slate-600 font-medium">When you finish building a quiz, QuizLink compresses the entire quiz — questions, answers, and results — into the link itself (in the part after the # symbol). Anyone who opens that link sees your quiz instantly. Nothing is stored on a server, which is why no account is needed.</p>
+      </details>
+      <details class="card-pop-sm bg-qpaper rounded-2xl p-5">
+        <summary class="font-extrabold cursor-pointer text-lg">What is personality-style scoring?</summary>
+        <p class="mt-2 text-slate-600 font-medium">Instead of right and wrong answers, each answer choice votes for a result bucket. If most of your picks point to the "Adventurer" outcome, that is your result — just like classic BuzzFeed-style personality quizzes.</p>
+      </details>
+      <details class="card-pop-sm bg-qpaper rounded-2xl p-5">
+        <summary class="font-extrabold cursor-pointer text-lg">Can I remix or edit a quiz someone shared with me?</summary>
+        <p class="mt-2 text-slate-600 font-medium">Yes. Open any QuizLink quiz link and tap "Remix this quiz" to load the full quiz into the editor. Change questions, answers, or results, then share your own new link. The original quiz is never changed.</p>
+      </details>
+      <details class="card-pop-sm bg-qpaper rounded-2xl p-5">
+        <summary class="font-extrabold cursor-pointer text-lg">How do I share my quiz result on social media?</summary>
+        <p class="mt-2 text-slate-600 font-medium">After finishing a quiz, tap "Download result card" to save a ready-made PNG image of your result, then post it on Instagram, WhatsApp, X, or anywhere else. You can also copy the quiz link so friends can take it themselves.</p>
+      </details>
+      <details class="card-pop-sm bg-qpaper rounded-2xl p-5">
+        <summary class="font-extrabold cursor-pointer text-lg">Is there a limit to how many questions or quizzes I can make?</summary>
+        <p class="mt-2 text-slate-600 font-medium">Each quiz supports 2 to 12 questions, 2 to 6 answers per question, and 2 to 8 possible results. There is no limit on the number of quizzes you can create — usage is unlimited and free.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t-[3px] border-qink mt-4">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <span class="w-8 h-8 rounded-lg bg-qlink border-[3px] border-qink flex items-center justify-center text-white font-display text-lg pt-0.5">Q</span>
+      <span class="font-display text-2xl">Quiz<span class="text-qlink">Link</span></span>
+    </div>
+    <p class="text-sm text-slate-500 font-medium text-center">Free DIY quiz maker — no signup, no paywall, unlimited quizzes.</p>
+    <nav class="flex items-center gap-5 text-sm font-semibold">
+      <a href="#top" class="hover:text-qlink">Home</a>
+      <a href="https://fixoraa.tech" class="hover:text-qlink">More Tools</a>
+    </nav>
+  </div>
+</footer>
+
+<div id="toast" class="toast hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-qink text-white font-bold text-sm px-6 py-3 rounded-full border-[3px] border-qlink shadow-mag max-w-[90vw] text-center"></div>
+
+<!-- Lib (inlined at build time) -->
+<script id="quizlink-quiz-maker-lib">
+/* ============================================================================
+ * QuizLink — DIY Quiz Maker core library
+ * PURE FUNCTIONS ONLY. No DOM, no window, no document, no localStorage,
+ * no navigator. Safe to eval in Node or a browser.
+ *
+ * Quiz schema (v1) — short keys keep the shareable URL hash compact:
+ *   {
+ *     v: 1,                       // schema version
+ *     t: "Quiz title",            // <=120 chars
+ *     d: "Short description",     // <=300 chars
+ *     q: [                       // 2..12 questions
+ *       { t: "Question text",     // <=200 chars
+ *         o: [                   // 2..6 options
+ *           { t: "Option text",   // <=120 chars
+ *             k: 0 } ] } ],      // outcome index this option votes for
+ *     r: [                       // 2..8 outcomes
+ *       { n: "Outcome name",      // <=80 chars
+ *         d: "Outcome blurb",     // <=400 chars
+ *         e: "emoji" } ]
+ *   }
+ *
+ * Share links: encodeQuiz(quiz) -> base64url(JSON) placed in location.hash.
+ * Opening the link + decodeQuiz(hash) -> quiz plays it. No backend, no signup.
+ * ========================================================================== */
+
+/* ---------- base64url helpers (Node + browser compatible) ---------- */
+
+function qlB64UrlEncode(str) {
+  var bytes = new TextEncoder().encode(String(str));
+  var b64;
+  if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+    b64 = Buffer.from(bytes).toString('base64');
+  } else {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    b64 = btoa(bin);
+  }
+  return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function qlB64UrlDecode(b64url) {
+  var b64 = String(b64url).replace(/-/g, '+').replace(/_/g, '/');
+  var pad = b64.length % 4;
+  if (pad === 1) return null; // a length of 4n+1 is impossible for base64
+  if (pad > 1) b64 += '===='.slice(pad);
+  var bytes;
+  try {
+    if (typeof Buffer !== 'undefined' && typeof Buffer.from === 'function') {
+      bytes = new Uint8Array(Buffer.from(b64, 'base64'));
+    } else {
+      var bin = atob(b64);
+      bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i) & 0xff;
+    }
+  } catch (e) {
+    return null;
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch (e) {
+    return null;
+  }
+}
+
+/* ---------- encode / decode ---------- */
+
+/* encodeQuiz(quiz) -> string
+ * Serializes a quiz object to a compact base64url hash payload.
+ * Never throws: returns '' for unusable input. The compact form is
+ * validated first, so a non-empty return always decodes back via
+ * decodeQuiz (encode/decode are symmetric). */
+function encodeQuiz(quiz) {
+  if (!quiz || typeof quiz !== 'object' || Array.isArray(quiz)) return '';
+  var compact = {
+    v: 1,
+    t: String(quiz.t == null ? '' : quiz.t),
+    d: String(quiz.d == null ? '' : quiz.d),
+    q: (Array.isArray(quiz.q) ? quiz.q : []).map(function (qq) {
+      return {
+        t: String(qq && qq.t != null ? qq.t : ''),
+        o: (qq && Array.isArray(qq.o) ? qq.o : []).map(function (op) {
+          var k = op && typeof op.k === 'number' ? Math.floor(op.k) : 0;
+          return { t: String(op && op.t != null ? op.t : ''), k: k < 0 ? 0 : k };
+        })
+      };
+    }),
+    r: (Array.isArray(quiz.r) ? quiz.r : []).map(function (rr) {
+      return {
+        n: String(rr && rr.n != null ? rr.n : ''),
+        d: String(rr && rr.d != null ? rr.d : ''),
+        e: String(rr && rr.e != null ? rr.e : '')
+      };
+    })
+  };
+  if (validateQuiz(compact).length > 0) return '';
+  return qlB64UrlEncode(JSON.stringify(compact));
+}
+
+/* decodeQuiz(hash) -> quiz object | null
+ * Robust against every kind of malformed input: returns null instead of
+ * throwing. Accepts the raw location.hash value (with or without '#'). */
+function decodeQuiz(hash) {
+  if (hash == null) return null;
+  var h = String(hash).trim().replace(/^#+/, '').trim();
+  if (!h) return null;
+  if (h.length > 120000) return null; // sanity cap against abuse
+  if (!/^[A-Za-z0-9\-_]+$/.test(h)) return null;
+  var json = qlB64UrlDecode(h);
+  if (json == null || json.length > 200000) return null;
+  var obj;
+  try {
+    obj = JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+  var quiz = { v: obj.v, t: obj.t, d: obj.d, q: obj.q, r: obj.r };
+  if (validateQuiz(quiz).length > 0) return null;
+  return quiz;
+}
+
+/* ---------- validation ---------- */
+
+/* validateQuiz(quiz) -> string[]
+ * Returns a list of human-readable problems; empty array means valid. */
+function validateQuiz(quiz) {
+  var errors = [];
+  if (!quiz || typeof quiz !== 'object' || Array.isArray(quiz)) {
+    return ['Quiz data is missing or corrupt.'];
+  }
+  if (quiz.v !== 1) errors.push('Unsupported quiz version.');
+
+  var title = String(quiz.t == null ? '' : quiz.t).trim();
+  if (!title) errors.push('Give your quiz a title.');
+  else if (title.length > 120) errors.push('Title must be 120 characters or fewer.');
+
+  var desc = String(quiz.d == null ? '' : quiz.d);
+  if (desc.length > 300) errors.push('Description must be 300 characters or fewer.');
+
+  var outcomes = Array.isArray(quiz.r) ? quiz.r : [];
+  if (outcomes.length < 2) errors.push('Add at least 2 result outcomes.');
+  else if (outcomes.length > 8) errors.push('Keep result outcomes to 8 or fewer.');
+
+  var used = {};
+  outcomes.forEach(function (r, i) {
+    var label = 'Outcome #' + (i + 1);
+    var n = String(r && r.n != null ? r.n : '').trim();
+    if (!n) errors.push(label + ' needs a name.');
+    else if (n.length > 80) errors.push(label + ' name must be 80 characters or fewer.');
+    var d = String(r && r.d != null ? r.d : '');
+    if (d.length > 400) errors.push(label + ' description must be 400 characters or fewer.');
+  });
+
+  var qs = Array.isArray(quiz.q) ? quiz.q : [];
+  if (qs.length < 2) errors.push('Add at least 2 questions.');
+  else if (qs.length > 12) errors.push('Keep questions to 12 or fewer.');
+
+  qs.forEach(function (qq, qi) {
+    var qlabel = 'Question #' + (qi + 1);
+    var qt = String(qq && qq.t != null ? qq.t : '').trim();
+    if (!qt) errors.push(qlabel + ' needs some text.');
+    else if (qt.length > 200) errors.push(qlabel + ' must be 200 characters or fewer.');
+    var opts = qq && Array.isArray(qq.o) ? qq.o : [];
+    if (opts.length < 2) errors.push(qlabel + ' needs at least 2 answer options.');
+    else if (opts.length > 6) errors.push(qlabel + ': keep answer options to 6 or fewer.');
+    opts.forEach(function (op, oi) {
+      var olabel = qlabel + ', option #' + (oi + 1);
+      var ot = String(op && op.t != null ? op.t : '').trim();
+      if (!ot) errors.push(olabel + ' needs some text.');
+      else if (ot.length > 120) errors.push(olabel + ' must be 120 characters or fewer.');
+      var k = op ? op.k : undefined;
+      if (typeof k !== 'number' || (k % 1) !== 0 || k < 0 || k >= outcomes.length) {
+        errors.push(olabel + ' points to a missing result outcome.');
+      } else {
+        used[k] = true;
+      }
+    });
+  });
+
+  outcomes.forEach(function (r, i) {
+    if (!used[i]) {
+      var n = String(r && r.n != null ? r.n : '').trim() || ('Outcome #' + (i + 1));
+      errors.push('"' + n.slice(0, 40) + '" is never picked by any answer — assign it to at least one option.');
+    }
+  });
+
+  return errors;
+}
+
+/* ---------- personality scoring ---------- */
+
+/* scoreQuiz(quiz, answers) -> result
+ * Personality-style scoring: each chosen option casts one vote for its
+ * outcome bucket. The bucket with the most votes wins. Ties resolve
+ * deterministically to the lowest outcome index and set tie=true.
+ * answers[i] = chosen option index for question i (skip with null/-1). */
+function scoreQuiz(quiz, answers) {
+  var nOut = quiz && Array.isArray(quiz.r) ? quiz.r.length : 0;
+  var counts = [];
+  for (var i = 0; i < nOut; i++) counts.push(0);
+  var total = 0;
+  var qs = quiz && Array.isArray(quiz.q) ? quiz.q : [];
+  for (var qi = 0; qi < qs.length; qi++) {
+    var a = answers ? answers[qi] : undefined;
+    if (typeof a !== 'number' || (a % 1) !== 0) continue;
+    var opts = qs[qi] && Array.isArray(qs[qi].o) ? qs[qi].o : [];
+    if (a < 0 || a >= opts.length) continue;
+    var k = opts[a] ? opts[a].k : undefined;
+    if (typeof k === 'number' && k >= 0 && k < nOut) {
+      counts[k]++;
+      total++;
+    }
+  }
+  var best = -1;
+  var bestCount = -1;
+  var tied = [];
+  for (var j = 0; j < nOut; j++) {
+    if (counts[j] > bestCount) {
+      bestCount = counts[j];
+      best = j;
+      tied = [j];
+    } else if (counts[j] === bestCount) {
+      tied.push(j);
+    }
+  }
+  var percs = counts.map(function (c) {
+    return total > 0 ? Math.round((c / total) * 100) : 0;
+  });
+  return {
+    outcome: best >= 0 && quiz.r ? quiz.r[best] : null,
+    outcomeIndex: best,
+    counts: counts,
+    percs: percs,
+    total: total,
+    answered: total,
+    questions: qs.length,
+    tie: tied.length > 1,
+    tied: tied
+  };
+}
+
+/* ---------- factories ---------- */
+
+function newBlankQuiz() {
+  return { v: 1, t: '', d: '', q: [], r: [] };
+}
+
+function newQuestion() {
+  return { t: '', o: [{ t: '', k: 0 }, { t: '', k: 0 }] };
+}
+
+function newOption() {
+  return { t: '', k: 0 };
+}
+
+function newOutcome() {
+  return { n: '', d: '', e: '' };
+}
+
+/* ---------- misc pure helpers ---------- */
+
+/* escapeHtml(s) -> string — for injecting user text into HTML safely. */
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* quizShareText(quiz, result) -> string
+ * Plain-text summary for the copy-link / share box under a result. */
+function quizShareText(quiz, result) {
+  var title = quiz && quiz.t ? String(quiz.t) : 'this quiz';
+  var out = result && result.outcome ? String(result.outcome.n || '') : '';
+  if (out) return 'I got "' + out + '" on "' + title + '" — take the quiz and see what you get!';
+  return 'Take "' + title + '" and see what you get!';
+}
+
+</script>
+
+<!-- UI wiring: editor + player + PNG export -->
+<script>
+(function () {
+  'use strict';
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ================= state ================= */
+  var edQuiz = newBlankQuiz();      // editor draft (lib schema: {v,t,d,q:[{t,o:[{t,k}]}],r:[{n,d,e}]})
+  var playerQuiz = null;            // quiz currently being played
+  var playerAnswers = [];           // chosen option index per question (-1 = unanswered)
+  var playerQIndex = 0;
+  var playerResult = null;
+  var lastHash = '';
+  var DRAFT_KEY = 'quizlink-draft-v1';
+
+  /* ================= tiny helpers ================= */
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.remove('hidden');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.add('hidden'); }, 2600);
+  }
+
+  function copyText(text, okMsg) {
+    function done() { toast(okMsg || 'Copied to clipboard!'); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); }
+      catch (e) { toast('Copy failed — long-press the link to copy it.'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else { fallback(); }
+  }
+
+  function shareUrlFor(hash) {
+    return window.location.href.split('#')[0] + '#' + hash;
+  }
+
+  function saveDraft() {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(edQuiz)); } catch (e) { /* private mode etc. */ }
+  }
+  function loadDraft() {
+    try {
+      var s = localStorage.getItem(DRAFT_KEY);
+      if (!s) return null;
+      var q = JSON.parse(s);
+      return validateQuiz(q).length === 0 ? q : null;
+    } catch (e) { return null; }
+  }
+
+  /* ================= sample quiz ================= */
+  function sampleQuiz() {
+    return {
+      v: 1,
+      t: 'Which Pizza Are You?',
+      d: 'Answer 5 quick questions and discover which pizza matches your personality.',
+      q: [
+        { t: 'Pick a Friday night plan:', o: [
+          { t: 'Bonfire with old friends', k: 0 }, { t: 'Fancy dinner downtown', k: 1 },
+          { t: 'Spontaneous road trip', k: 2 }, { t: 'Blanket fort + movies', k: 3 } ] },
+        { t: 'Choose a superpower:', o: [
+          { t: 'Teleport anywhere', k: 2 }, { t: 'Read minds', k: 1 },
+          { t: 'Talk to animals', k: 0 }, { t: 'Pause time for naps', k: 3 } ] },
+        { t: 'Your ideal vacation:', o: [
+          { t: 'Camping under the stars', k: 0 }, { t: 'Five-star city break', k: 1 },
+          { t: 'Backpacking with no plan', k: 2 }, { t: 'Resort. Pool. Done.', k: 3 } ] },
+        { t: 'Pick a movie genre:', o: [
+          { t: 'Feel-good comedy', k: 0 }, { t: 'Oscar-bait drama', k: 1 },
+          { t: 'Action blockbuster', k: 2 }, { t: 'Cozy animated film', k: 3 } ] },
+        { t: 'Your friends describe you as:', o: [
+          { t: 'The reliable one', k: 0 }, { t: 'The classy one', k: 1 },
+          { t: 'The wild one', k: 2 }, { t: 'The comfy one', k: 3 } ] }
+      ],
+      r: [
+        { n: 'Classic Margherita', d: 'Timeless, warm, and loved by literally everyone. You are the comfort person in every group.', e: '🍕' },
+        { n: 'Truffle Burrata', d: 'Refined taste, high standards, zero apologies. You turn ordinary moments into occasions.', e: '🍷' },
+        { n: 'Spicy Diavola', d: 'Bold, unpredictable, and impossible to ignore. Life is better with you turned all the way up.', e: '🌶️' },
+        { n: 'Four Cheese', d: 'Maximum coziness. You collect blankets, not drama, and your couch has a permanent you-shaped dent.', e: '🧀' }
+      ]
+    };
+  }
+
+  /* ================= editor ================= */
+  function outcomeLabel(i) {
+    var n = (edQuiz.r[i] && edQuiz.r[i].n || '').trim();
+    return n || ('Outcome #' + (i + 1));
+  }
+
+  function outcomeOptionsHTML(selected) {
+    var html = '';
+    for (var i = 0; i < edQuiz.r.length; i++) {
+      html += '<option value="' + i + '"' + (i === selected ? ' selected' : '') + '>' +
+        escapeHtml(outcomeLabel(i)) + '</option>';
+    }
+    return html;
+  }
+
+  function renderOutcomes() {
+    var wrap = $('ed-outcomes');
+    var html = '';
+    for (var i = 0; i < edQuiz.r.length; i++) {
+      (function (idx) {
+        var o = edQuiz.r[idx];
+        html +=
+          '<div class="bg-white border-[3px] border-qink rounded-xl p-4">' +
+            '<div class="flex items-center justify-between mb-2">' +
+              '<span class="text-xs font-extrabold uppercase tracking-widest text-slate-500">Outcome ' + (idx + 1) + '</span>' +
+              (edQuiz.r.length > 2
+                ? '<button type="button" data-del-outcome="' + idx + '" class="text-xs font-extrabold text-red-500 hover:text-red-700">Remove</button>'
+                : '') +
+            '</div>' +
+            '<div class="flex gap-2 mb-2">' +
+              '<input type="text" data-oc-emoji="' + idx + '" maxlength="8" placeholder="🍕" value="' + escapeHtml(o.e || '') + '"' +
+                ' class="w-16 shrink-0 border-2 border-slate-300 rounded-lg px-2 py-2 text-center text-xl bg-white">' +
+              '<input type="text" data-oc-name="' + idx + '" maxlength="80" placeholder="Outcome name, e.g. The Adventurer" value="' + escapeHtml(o.n || '') + '"' +
+                ' class="flex-1 min-w-0 border-2 border-slate-300 rounded-lg px-3 py-2 font-bold bg-white">' +
+            '</div>' +
+            '<textarea data-oc-desc="' + idx + '" rows="2" maxlength="400" placeholder="One or two fun lines describing this result…" ' +
+              'class="w-full border-2 border-slate-300 rounded-lg px-3 py-2 text-sm font-medium bg-white resize-y">' +
+              escapeHtml(o.d || '') + '</textarea>' +
+          '</div>';
+      })(i);
+    }
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('[data-oc-name]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        edQuiz.r[+el.getAttribute('data-oc-name')].n = el.value;
+        saveDraft();
+      });
+      el.addEventListener('change', function () { renderQuestions(); }); // refresh option dropdown labels
+    });
+    wrap.querySelectorAll('[data-oc-emoji]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        edQuiz.r[+el.getAttribute('data-oc-emoji')].e = el.value;
+        saveDraft();
+      });
+    });
+    wrap.querySelectorAll('[data-oc-desc]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        edQuiz.r[+el.getAttribute('data-oc-desc')].d = el.value;
+        saveDraft();
+      });
+    });
+    wrap.querySelectorAll('[data-del-outcome]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var idx = +el.getAttribute('data-del-outcome');
+        // re-point any options voting for the removed outcome to outcome 0
+        edQuiz.q.forEach(function (qq) {
+          qq.o.forEach(function (op) {
+            if (op.k === idx) op.k = 0;
+            else if (op.k > idx) op.k--;
+          });
+        });
+        edQuiz.r.splice(idx, 1);
+        saveDraft(); renderOutcomes(); renderQuestions();
+        toast('Outcome removed.');
+      });
+    });
+  }
+
+  function renderQuestions() {
+    var wrap = $('ed-questions');
+    var html = '';
+    for (var qi = 0; qi < edQuiz.q.length; qi++) {
+      (function (qidx) {
+        var qq = edQuiz.q[qidx];
+        var letters = 'ABCDEF';
+        var optsHtml = '';
+        for (var oi = 0; oi < qq.o.length; oi++) {
+          (function (oidx) {
+            var op = qq.o[oidx];
+            optsHtml +=
+              '<div class="flex gap-2 items-center">' +
+                '<span class="w-8 h-8 shrink-0 rounded-lg bg-qink text-white text-xs font-extrabold flex items-center justify-center">' + letters[oidx] + '</span>' +
+                '<input type="text" data-opt-text="' + qidx + ':' + oidx + '" maxlength="120" placeholder="Answer option…" value="' + escapeHtml(op.t || '') + '"' +
+                  ' class="flex-1 min-w-0 border-2 border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white">' +
+                '<select data-opt-vote="' + qidx + ':' + oidx + '" title="Which result this answer votes for"' +
+                  ' class="shrink-0 max-w-[128px] border-2 border-qteal rounded-lg px-1.5 py-2 text-xs font-extrabold bg-teal-50">' +
+                  outcomeOptionsHTML(op.k) +
+                '</select>' +
+                (qq.o.length > 2
+                  ? '<button type="button" data-del-opt="' + qidx + ':' + oidx + '" class="shrink-0 text-red-500 hover:text-red-700 font-extrabold px-1" title="Remove option">✕</button>'
+                  : '') +
+              '</div>';
+          })(oi);
+        }
+        html +=
+          '<div class="bg-white border-[3px] border-qink rounded-xl p-4">' +
+            '<div class="flex items-center justify-between mb-2">' +
+              '<span class="text-xs font-extrabold uppercase tracking-widest text-slate-500">Question ' + (qidx + 1) + '</span>' +
+              (edQuiz.q.length > 2
+                ? '<button type="button" data-del-q="' + qidx + '" class="text-xs font-extrabold text-red-500 hover:text-red-700">Remove question</button>'
+                : '') +
+            '</div>' +
+            '<input type="text" data-q-text="' + qidx + '" maxlength="200" placeholder="Type your question…" value="' + escapeHtml(qq.q || '') + '"' +
+              ' class="w-full border-2 border-slate-300 rounded-lg px-3 py-2.5 font-bold bg-white mb-3">' +
+            '<div class="space-y-2">' + optsHtml + '</div>' +
+            (qq.o.length < 6
+              ? '<button type="button" data-add-opt="' + qidx + '" class="mt-3 text-xs font-extrabold text-qteal hover:underline">+ Add answer option</button>'
+              : '<p class="mt-3 text-xs text-slate-400 font-medium">Maximum 6 options per question.</p>') +
+          '</div>';
+      })(qi);
+    }
+    if (!edQuiz.q.length) {
+      html = '<p class="text-sm text-slate-500 font-medium bg-white border-2 border-dashed border-slate-300 rounded-xl p-6 text-center">No questions yet — hit “+ Add question” to start building.</p>';
+    }
+    wrap.innerHTML = html;
+
+    wrap.querySelectorAll('[data-q-text]').forEach(function (el) {
+      el.addEventListener('input', function () {
+        edQuiz.q[+el.getAttribute('data-q-text')].t = el.value;
+        saveDraft();
+      });
+    });
+    wrap.querySelectorAll('[data-opt-text]').forEach(function (el) {
+      var parts = el.getAttribute('data-opt-text').split(':');
+      el.addEventListener('input', function () {
+        edQuiz.q[+parts[0]].o[+parts[1]].t = el.value;
+        saveDraft();
+      });
+    });
+    wrap.querySelectorAll('[data-opt-vote]').forEach(function (el) {
+      var parts = el.getAttribute('data-opt-vote').split(':');
+      el.addEventListener('change', function () {
+        edQuiz.q[+parts[0]].o[+parts[1]].k = +el.value;
+        saveDraft();
+      });
+    });
+    wrap.querySelectorAll('[data-add-opt]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        edQuiz.q[+el.getAttribute('data-add-opt')].o.push(newOption());
+        saveDraft(); renderQuestions();
+      });
+    });
+    wrap.querySelectorAll('[data-del-opt]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        var parts = el.getAttribute('data-del-opt').split(':');
+        edQuiz.q[+parts[0]].o.splice(+parts[1], 1);
+        saveDraft(); renderQuestions();
+      });
+    });
+    wrap.querySelectorAll('[data-del-q]').forEach(function (el) {
+      el.addEventListener('click', function () {
+        edQuiz.q.splice(+el.getAttribute('data-del-q'), 1);
+        saveDraft(); renderQuestions();
+        toast('Question removed.');
+      });
+    });
+  }
+
+  function refreshEditor() {
+    $('ed-title').value = edQuiz.t || '';
+    $('ed-desc').value = edQuiz.d || '';
+    renderOutcomes();
+    renderQuestions();
+  }
+
+  function showErrors(errs) {
+    var box = $('ed-errors');
+    if (!errs.length) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+    box.classList.remove('hidden');
+    box.innerHTML = '<p class="font-extrabold mb-1">Please fix ' + errs.length + ' thing' + (errs.length > 1 ? 's' : '') + ':</p>' +
+      '<ul class="list-disc pl-5">' + errs.map(function (e) { return '<li>' + escapeHtml(e) + '</li>'; }).join('') + '</ul>';
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* Validate, then produce a share link (or show friendly errors). */
+  function buildShareLink() {
+    var errs = validateQuiz(edQuiz);
+    showErrors(errs);
+    if (errs.length) { toast('Almost there — fix the highlighted issues first.'); return null; }
+    var hash = encodeQuiz(edQuiz);
+    if (!hash) { toast('Something went wrong encoding your quiz. Please try again.'); return null; }
+    return shareUrlFor(hash);
+  }
+
+  /* ================= views ================= */
+  function showView(which) {
+    $('view-editor').classList.toggle('hidden', which !== 'editor');
+    $('view-player').classList.toggle('hidden', which !== 'player');
+  }
+  function showPlayerPane(which) {
+    ['player-cover', 'player-invalid', 'player-quiz', 'player-result'].forEach(function (id) {
+      $(id).classList.toggle('hidden', id !== which);
+    });
+  }
+
+  /* ================= player ================= */
+  function enterPlayer(hash) {
+    lastHash = hash;
+    var q = decodeQuiz(hash);
+    showView('player');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!q) { showPlayerPane('player-invalid'); return; }
+    playerQuiz = q;
+    playerAnswers = [];
+    for (var i = 0; i < q.q.length; i++) playerAnswers.push(-1);
+    playerQIndex = 0;
+    playerResult = null;
+    $('cover-title').textContent = q.t;
+    $('cover-desc').textContent = q.d || '';
+    $('cover-desc').style.display = q.d ? '' : 'none';
+    $('cover-count').textContent = q.q.length + ' questions • ' + q.r.length + ' results';
+    showPlayerPane('player-cover');
+  }
+
+  function optionLetter(i) { return 'ABCDEF'.charAt(i) || '?'; }
+
+  function showQuestion(i, dir) {
+    playerQIndex = i;
+    var qq = playerQuiz.q[i];
+    var card = $('q-card');
+    card.classList.remove('slide-in-right', 'slide-in-left');
+    void card.offsetWidth; // restart animation
+    card.classList.add(dir === 'back' ? 'slide-in-left' : 'slide-in-right');
+
+    var html = '<p class="text-xs font-extrabold uppercase tracking-[0.2em] text-qlink mb-2">Question ' + (i + 1) + '</p>' +
+      '<h3 class="font-display text-4xl sm:text-5xl leading-none mb-6">' + escapeHtml(qq.t) + '</h3>' +
+      '<div class="space-y-3">';
+    for (var oi = 0; oi < qq.o.length; oi++) {
+      html += '<button type="button" data-pick="' + oi + '" class="opt-card w-full text-left bg-white rounded-2xl p-4 flex items-center gap-4' +
+        (playerAnswers[i] === oi ? ' picked' : '') + '">' +
+        '<span class="opt-letter w-10 h-10 shrink-0 rounded-xl bg-qink text-white font-display text-xl flex items-center justify-center pt-0.5">' + optionLetter(oi) + '</span>' +
+        '<span class="font-bold text-base sm:text-lg leading-snug">' + escapeHtml(qq.o[oi].t) + '</span>' +
+        '</button>';
+    }
+    html += '</div>';
+    card.innerHTML = html;
+
+    var total = playerQuiz.q.length;
+    $('q-progress-label').textContent = 'Question ' + (i + 1) + ' of ' + total;
+    $('q-progress-bar').style.width = Math.round(((i + 1) / total) * 100) + '%';
+
+    card.querySelectorAll('[data-pick]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        pickOption(i, +btn.getAttribute('data-pick'));
+      });
+    });
+
+    // swipe navigation
+    var sx = null, sy = null;
+    card.ontouchstart = function (e) {
+      var t = e.changedTouches[0];
+      sx = t.clientX; sy = t.clientY;
+    };
+    card.ontouchend = function (e) {
+      if (sx === null) return;
+      var t = e.changedTouches[0];
+      var dx = t.clientX - sx, dy = t.clientY - sy;
+      sx = null;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (dx < 0) { if (playerAnswers[i] >= 0) nextQuestion(); else toast('Pick an answer to continue 👆'); }
+      else prevQuestion();
+    };
+  }
+
+  function pickOption(qi, oi) {
+    playerAnswers[qi] = oi;
+    // brief picked flash, then advance
+    var card = $('q-card');
+    card.querySelectorAll('[data-pick]').forEach(function (b) {
+      b.classList.toggle('picked', +b.getAttribute('data-pick') === oi);
+    });
+    setTimeout(function () {
+      if (qi === playerQuiz.q.length - 1) finishQuiz();
+      else nextQuestion();
+    }, 220);
+  }
+
+  function nextQuestion() {
+    if (playerQIndex < playerQuiz.q.length - 1) showQuestion(playerQIndex + 1, 'fwd');
+    else if (playerAnswers[playerQIndex] >= 0) finishQuiz();
+  }
+  function prevQuestion() {
+    if (playerQIndex > 0) showQuestion(playerQIndex - 1, 'back');
+  }
+
+  function finishQuiz() {
+    var mapped = playerAnswers.map(function (a) { return a >= 0 ? a : null; });
+    playerResult = scoreQuiz(playerQuiz, mapped);
+    var r = playerResult.outcome || { n: 'Mystery Result', d: '', e: '🎲' };
+
+    $('res-quiz-title').textContent = '“' + playerQuiz.t + '”';
+    $('res-emoji').textContent = r.e || '🎉';
+    $('res-name').textContent = r.n || '';
+    $('res-desc').textContent = r.d || '';
+    $('res-desc').style.display = r.d ? '' : 'none';
+    $('res-tie-note').classList.toggle('hidden', !playerResult.tie);
+    $('res-share-text').textContent = quizShareText(playerQuiz, playerResult);
+
+    var bars = '';
+    for (var i = 0; i < playerQuiz.r.length; i++) {
+      var pct = playerResult.percs[i];
+      var name = playerQuiz.r[i].n || ('Outcome #' + (i + 1));
+      bars += '<div>' +
+        '<div class="flex justify-between text-xs font-extrabold mb-1">' +
+          '<span class="truncate mr-2">' + escapeHtml((playerQuiz.r[i].e || '') + ' ' + name) + '</span>' +
+          '<span>' + pct + '%</span>' +
+        '</div>' +
+        '<div class="h-3 bg-slate-200 rounded-full overflow-hidden border-2 border-qink">' +
+          '<div class="h-full rounded-full ' + (i === playerResult.outcomeIndex ? 'bg-qlink' : 'bg-qteal') + '" style="width:' + pct + '%"></div>' +
+        '</div></div>';
+    }
+    $('res-bars').innerHTML = bars;
+
+    showPlayerPane('player-result');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ================= remix ================= */
+  function remixQuiz() {
+    if (!playerQuiz) return;
+    edQuiz = JSON.parse(JSON.stringify(playerQuiz));
+    refreshEditor();
+    saveDraft();
+    try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
+    lastHash = '';
+    showView('editor');
+    showErrors([]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast('Remixed! Edit anything, then share your own link. ✏️');
+  }
+
+  /* ================= PNG result card ================= */
+  function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
+    var words = String(text).split(/\s+/);
+    var line = '';
+    for (var i = 0; i < words.length; i++) {
+      var test = line ? line + ' ' + words[i] : words[i];
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line, x, y);
+        y += lineHeight;
+        line = words[i];
+      } else { line = test; }
+    }
+    if (line) ctx.fillText(line, x, y);
+    return y + lineHeight;
+  }
+
+  function downloadResultPNG() {
+    if (!playerResult || !playerQuiz) { toast('Play the quiz first to get a result card.'); return; }
+    var W = 1080, H = 1350;
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    var ctx = c.getContext('2d');
+    var r = playerResult.outcome || { n: 'Mystery Result', d: '', e: '🎲' };
+
+    // background
+    ctx.fillStyle = '#FF3E6C';
+    ctx.fillRect(0, 0, W, H);
+    // decorative circles
+    ctx.fillStyle = 'rgba(255,255,255,0.10)';
+    ctx.beginPath(); ctx.arc(950, 120, 220, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(46,196,182,0.55)';
+    ctx.beginPath(); ctx.arc(120, 1180, 180, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.beginPath(); ctx.arc(880, 1120, 130, 0, Math.PI * 2); ctx.fill();
+    // polka dots
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    for (var dy = 0; dy < 6; dy++) for (var dx = 0; dx < 10; dx++) {
+      ctx.beginPath(); ctx.arc(60 + dx * 110 + (dy % 2) * 55, 240 + dy * 60, 7, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // top band
+    ctx.fillStyle = '#191423';
+    ctx.fillRect(0, 0, W, 150);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '700 34px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Q U I Z L I N K   •   P E R S O N A L I T Y   Q U I Z', W / 2, 92);
+
+    // quiz title
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '700 40px Arial, sans-serif';
+    var y = 235;
+    y = wrapCanvasText(ctx, playerQuiz.t, W / 2, y, W - 160, 52);
+
+    // "YOU ARE"
+    ctx.fillStyle = '#191423';
+    ctx.font = '900 64px Arial, sans-serif';
+    y += 40;
+    ctx.fillText('YOU ARE', W / 2, y);
+    y += 26;
+
+    // emoji
+    ctx.font = '150px serif';
+    ctx.fillText(r.e || '🎉', W / 2, y + 130);
+    y += 200;
+
+    // outcome name
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '900 92px Arial, sans-serif';
+    y = wrapCanvasText(ctx, r.n || '', W / 2, y, W - 140, 100);
+
+    // outcome description
+    if (r.d) {
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.font = '400 36px Arial, sans-serif';
+      y += 24;
+      y = wrapCanvasText(ctx, r.d, W / 2, y, W - 200, 50);
+    }
+
+    // breakdown card
+    y += 50;
+    var cardX = 90, cardW = W - 180;
+    var cardH = 120 + playerQuiz.r.length * 64;
+    if (y + cardH > H - 150) cardH = H - 150 - y;
+    ctx.fillStyle = 'rgba(255,255,255,0.96)';
+    ctx.strokeStyle = '#191423';
+    ctx.lineWidth = 6;
+    var cardY = y;
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(cardX, cardY, cardW, cardH, 28); ctx.fill(); ctx.stroke(); }
+    else { ctx.fillRect(cardX, cardY, cardW, cardH); ctx.strokeRect(cardX, cardY, cardW, cardH); }
+    ctx.fillStyle = '#191423';
+    ctx.font = '800 30px Arial, sans-serif';
+    ctx.textAlign = 'left';
+    var by = cardY + 62;
+    ctx.fillText('YOUR BREAKDOWN', cardX + 44, by);
+    by += 26;
+    for (var i = 0; i < playerQuiz.r.length && by < cardY + cardH - 20; i++) {
+      var pct = playerResult.percs[i];
+      var nm = (playerQuiz.r[i].n || ('Outcome #' + (i + 1)));
+      if (nm.length > 26) nm = nm.slice(0, 25) + '…';
+      ctx.font = '700 28px Arial, sans-serif';
+      ctx.fillStyle = '#191423';
+      ctx.fillText(nm, cardX + 44, by + 22);
+      ctx.textAlign = 'right';
+      ctx.fillText(pct + '%', cardX + cardW - 44, by + 22);
+      ctx.textAlign = 'left';
+      // bar
+      var barX = cardX + 44, barW = cardW - 88, barY = by + 34, barH = 14;
+      ctx.fillStyle = '#E5E7EB';
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.fillStyle = (i === playerResult.outcomeIndex) ? '#FF3E6C' : '#2EC4B6';
+      ctx.fillRect(barX, barY, Math.max(4, barW * pct / 100), barH);
+      by += 64;
+    }
+
+    // footer
+    ctx.fillStyle = '#191423';
+    ctx.fillRect(0, H - 120, W, 120);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.font = '700 28px Arial, sans-serif';
+    ctx.fillText('Take the quiz yourself — free, no signup:', W / 2, H - 72);
+    ctx.font = '400 24px Arial, sans-serif';
+    ctx.fillStyle = '#2EC4B6';
+    var link = shareUrlFor(lastHash);
+    if (link.length > 72) link = link.slice(0, 69) + '…';
+    ctx.fillText(link, W / 2, H - 34);
+
+    var a = document.createElement('a');
+    a.download = 'quizlink-result.png';
+    a.href = c.toDataURL('image/png');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast('Result card downloaded! Share it anywhere. 🎉');
+  }
+
+  /* ================= init & wiring ================= */
+  function init() {
+    // editor basics
+    $('ed-title').addEventListener('input', function (e) { edQuiz.t = e.target.value; saveDraft(); });
+    $('ed-desc').addEventListener('input', function (e) { edQuiz.d = e.target.value; saveDraft(); });
+
+    $('btn-add-outcome').addEventListener('click', function () {
+      if (edQuiz.r.length >= 8) { toast('Maximum 8 outcomes per quiz.'); return; }
+      edQuiz.r.push(newOutcome());
+      saveDraft(); renderOutcomes(); renderQuestions();
+    });
+    $('btn-add-question').addEventListener('click', function () {
+      if (edQuiz.q.length >= 12) { toast('Maximum 12 questions per quiz.'); return; }
+      edQuiz.q.push(newQuestion());
+      saveDraft(); renderQuestions();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+    $('btn-sample').addEventListener('click', function () {
+      edQuiz = sampleQuiz();
+      refreshEditor(); saveDraft(); showErrors([]);
+      toast('Sample quiz loaded — hit Preview & Play!');
+    });
+    $('btn-fresh').addEventListener('click', function () {
+      edQuiz = newBlankQuiz();
+      edQuiz.r.push(newOutcome(), newOutcome());
+      edQuiz.q.push(newQuestion(), newQuestion());
+      refreshEditor(); saveDraft(); showErrors([]);
+      toast('Fresh canvas. Build something fun!');
+    });
+
+    $('btn-share').addEventListener('click', function () {
+      var url = buildShareLink();
+      if (!url) return;
+      var box = $('share-box');
+      box.classList.remove('hidden');
+      $('share-url').value = url;
+      $('share-url').select();
+      toast('Quiz link ready — copied below!');
+    });
+    $('btn-copy-url').addEventListener('click', function () {
+      var v = $('share-url').value;
+      if (v) copyText(v, 'Share link copied! Send it anywhere. 🔗');
+    });
+    $('btn-preview').addEventListener('click', function () {
+      var url = buildShareLink();
+      if (!url) return;
+      var hash = url.split('#')[1] || '';
+      try { window.location.hash = hash; } catch (e) {}
+      enterPlayer(hash);
+    });
+
+    // player
+    $('btn-start').addEventListener('click', function () {
+      showPlayerPane('player-quiz');
+      showQuestion(0, 'fwd');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    $('btn-back-q').addEventListener('click', prevQuestion);
+    $('btn-remix-cover').addEventListener('click', remixQuiz);
+    $('btn-remix-result').addEventListener('click', remixQuiz);
+    $('btn-invalid-make').addEventListener('click', function () {
+      try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
+      lastHash = '';
+      edQuiz = sampleQuiz();
+      refreshEditor(); saveDraft();
+      showView('editor');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    $('btn-retake').addEventListener('click', function () {
+      for (var i = 0; i < playerAnswers.length; i++) playerAnswers[i] = -1;
+      playerResult = null;
+      showPlayerPane('player-quiz');
+      showQuestion(0, 'fwd');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    $('btn-make-own').addEventListener('click', function () {
+      try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) {}
+      lastHash = '';
+      edQuiz = newBlankQuiz();
+      edQuiz.r.push(newOutcome(), newOutcome());
+      edQuiz.q.push(newQuestion(), newQuestion());
+      refreshEditor(); saveDraft(); showErrors([]);
+      showView('editor');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    $('btn-png').addEventListener('click', downloadResultPNG);
+    $('btn-copy-result-link').addEventListener('click', function () {
+      if (lastHash) copyText(shareUrlFor(lastHash), 'Quiz link copied! Challenge your friends. 🔗');
+      else toast('No share link available.');
+    });
+
+    window.addEventListener('hashchange', function () {
+      var nh = window.location.hash.replace(/^#+/, '');
+      if (nh && nh !== lastHash) enterPlayer(nh);
+      else if (!nh && lastHash) { lastHash = ''; showView('editor'); }
+    });
+
+    // boot: hash present -> play, otherwise editor (draft or sample)
+    var h = window.location.hash.replace(/^#+/, '');
+    if (h) {
+      enterPlayer(h);
+    } else {
+      var draft = loadDraft();
+      edQuiz = draft || sampleQuiz();
+      refreshEditor();
+      showView('editor');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+})();
+</script>
+</body>
+</html>
+
